@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoutes from "./routes/auth.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
@@ -13,12 +12,27 @@ import { requestLogger } from "./middleware/logger.js";
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://tren-dora.vercel.app",
+];
+
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      // Postman ya same-origin requests ke liye
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(requestLogger);
@@ -31,7 +45,10 @@ app.use("/api/github", githubRoutes);
 app.use("/api/user", userRoutes);
 
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ success: true, message: "Server is healthy" });
+  res.status(200).json({
+    success: true,
+    message: "Server is healthy",
+  });
 });
 
 app.use(errorHandler);

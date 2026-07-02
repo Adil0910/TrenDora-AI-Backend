@@ -7,21 +7,34 @@ import { initChatSocket } from "./sockets/chat.socket.js";
 
 const httpServer = http.createServer(app);
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://tren-dora.vercel.app",
+];
+
 const io = new Server(httpServer, {
   cors: {
-    origin: env.CLIENT_URL,
+    origin: allowedOrigins,
     credentials: true,
+    methods: ["GET", "POST"],
   },
 });
 
 initChatSocket(io);
 
 const startServer = async () => {
-  await connectDB();
+  try {
+    await connectDB();
 
-  httpServer.listen(env.PORT, () => {
-    console.log(`Server running on port ${env.PORT} [${env.NODE_ENV}]`);
-  });
+    httpServer.listen(env.PORT, () => {
+      console.log(
+        `Server running on port ${env.PORT} [${env.NODE_ENV}]`
+      );
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
 };
 
 startServer();
