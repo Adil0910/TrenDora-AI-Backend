@@ -4,7 +4,11 @@ import ApiError from "../utils/ApiError.js";
 
 export const protect = async (req, res, next) => {
   try {
-    const token = req.cookies?.token;
+    const bearerToken = req.headers.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.split(" ")[1]
+      : null;
+
+    const token = bearerToken || req.cookies?.token;
 
     if (!token) {
       throw new ApiError(401, "Not authorized, no token");

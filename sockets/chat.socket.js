@@ -4,10 +4,14 @@ import { logger } from "../utils/logger.js";
 
 const authenticateSocket = (socket, next) => {
   try {
-    const token = socket.handshake.headers.cookie
+    const handshakeToken = socket.handshake.auth?.token;
+
+    const cookieToken = socket.handshake.headers.cookie
       ?.split("; ")
       .find((c) => c.startsWith("token="))
       ?.split("=")[1];
+
+    const token = handshakeToken || cookieToken;
 
     if (!token) return next(new Error("Not authorized"));
 
